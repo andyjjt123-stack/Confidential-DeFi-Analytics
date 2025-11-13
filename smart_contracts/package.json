@@ -1,0 +1,16 @@
+{
+  "name": "smart_contracts",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:stable": "hardhat run scripts/deploy.js --network stable"
+  },
+  "devDependencies": {
+    "hardhat": "2.26.2",
+    "@nomicfoundation/hardhat-ethers": "3.1.2",
+    "ethers": "6.14.1",
+    "dotenv": "16.4.5"
+  }
+}
