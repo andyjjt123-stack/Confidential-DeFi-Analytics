@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import axios from "axios";
+import api from "../api";   // 路徑依你的實際位置調整
 import { ref } from "vue";
 
 /** 你原本的狀態（保留） */
@@ -61,18 +61,16 @@ const txHash = ref("");
 const result = ref("");
 const loading = ref(false);
 
-const BACKEND = "https://cda-backend-499q.onrender.com";
-
 async function submitMetric(){
   if(!cipherHex.value) return alert("Please input cipherHex");
   loading.value = true;
   try{
-    const r = await axios.post('${BACKEND}/vault/submit', null, { params:{ cipherHex: cipherHex.value }});
+    const r = await api.post('/vault/submit', null, { params:{ cipherHex: cipherHex.value }});
     txHash.value = r.data.txHash || "";
   } finally { loading.value = false; }
 }
 async function getResult(){
-  const r2 = await axios.get('${BACKEND}/vault/result');
+  const r2 = await api.get('/vault/result');
   result.value = r2.data.encryptedResult || "";
 }
 
@@ -93,7 +91,7 @@ async function submitMetricFromPlain(){
   if(!cipherHexFromPlain.value) return alert("請先 Encrypt");
   loading.value = true;
   try{
-    const r = await axios.post('${BACKEND}/vault/submit', null, { params:{ cipherHex: cipherHexFromPlain.value }});
+    const r = await api.post('/vault/submit', null, { params:{ cipherHex: cipherHexFromPlain.value }});
     txSubmitFromPlain.value = r.data.txHash || "";
   } finally { loading.value = false; }
 }
