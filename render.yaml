@@ -29,5 +29,8 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     envVars:
       - key: VITE_API_BASE
-        sync: false         # 後端 Live 後再填入公開 URL
+        sync: false          # 這裡填你的後端 URL
+    dockerBuildArgs:         # ⬅ 新增這行與內容
+      - VITE_API_BASE
     healthCheckPath: /
+
