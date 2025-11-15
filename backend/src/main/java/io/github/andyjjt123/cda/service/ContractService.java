@@ -1,6 +1,7 @@
 package io.github.andyjjt123.cda.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
@@ -19,11 +20,13 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.utils.Numeric;
 
+import jakarta.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ContractService {
@@ -33,13 +36,32 @@ public class ContractService {
     private final String contractAddress;
     private final long chainId;
 
+    @PostConstruct
+    public void logSenderInfo() throws Exception {
+        BigInteger balance = web3j.ethGetBalance(
+                credentials.getAddress(),
+                DefaultBlockParameterName.LATEST
+        ).send().getBalance();
+
+        log.info("CDA backend sender address = {}, chainId = {}, on-chain balance = {} wei",
+                credentials.getAddress(), chainId, balance);
+        log.info("Target contract address = {}", contractAddress);
+    }
+
     /**
      * 共用：送出一個寫鏈上的合約 Function，回傳 txHash
      */
     private String sendFunctionTx(Function fn) throws Exception {
         String data = FunctionEncoder.encode(fn);
 
-        // 每次呼叫建立一個 RawTransactionManager（內部會自己去抓 nonce）
+        BigInteger balance = web3j.ethGetBalance(
+                credentials.getAddress(),
+                DefaultBlockParameterName.LATEST
+        ).send().getBalance();
+
+        log.info("Sending tx from {} , current on-chain balance = {} wei",
+                credentials.getAddress(), balance);
+
         RawTransactionManager txMgr =
                 new RawTransactionManager(web3j, credentials, chainId);
 
@@ -53,11 +75,21 @@ public class ContractService {
 
         if (tx.hasError()) {
             String msg = tx.getError() != null ? tx.getError().getMessage() : "unknown error";
-
-            // 把常見的 nonce 類錯誤，用比較明確的訊息丟出去
             String lower = msg.toLowerCase();
+
+            if (lower.contains("insufficient funds")) {
+                throw new IllegalStateException(String.format(
+                        "Insufficient funds for sender %s. " +
+                                "on-chain balance = %s wei, gasPrice = %s, gasLimit = %s, rawMsg = %s",
+                        credentials.getAddress(),
+                        balance.toString(),
+                        DefaultGasProvider.GAS_PRICE,
+                        DefaultGasProvider.GAS_LIMIT,
+                        msg
+                ));
+            }
+
             if (lower.contains("invalid nonce") || lower.contains("tx already in mempool")) {
-                // 這邊用 IllegalStateException，之後你在 Controller 可以依需要包成 400/409 等回前端
                 throw new IllegalStateException("On-chain nonce error: " + msg);
             }
 
@@ -69,7 +101,6 @@ public class ContractService {
 
     /** submitMetric(bytes) 寫入鏈上 */
     public String submitEncryptedMetric(String cipherHex) throws Exception {
-        // 去除 0x，轉成 bytes
         byte[] bytes = Numeric.hexStringToByteArray(Numeric.cleanHexPrefix(cipherHex));
 
         Function fn = new Function(
