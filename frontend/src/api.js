@@ -1,3 +1,4 @@
 import axios from "axios";
-const base = import.meta.env.VITE_API_BASE || "http://localhost:8080";
+// 臨時硬寫：先確保打得到後端
+const base = "https://cda-backend-499q.onrender.com";
 export default axios.create({ baseURL: base });
