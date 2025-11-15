@@ -13,11 +13,14 @@
       <hr />
       <button @click="getResult">Get Encrypted Result</button>
       <div v-if="result"><p>🔒 Encrypted Result</p><code>{{ result }}</code></div>
+	  <p v-if="errorMsg" style="color: red; margin-top: 8px">
+		❌ {{ errorMsg }}
+	  </p>
     </div>
 
     <!-- 新增區塊：FHE Mock E2E（明文→加密→上鏈→評估→回寫→取回→解密） -->
     <div class="card" style="margin-top:20px">
-      <h3>FHE Mock End-to-End</h3>
+	  <h3>FHE Mock End-to-End</h3>
 
       <label>Plain Input</label>
       <input v-model="plain" class="w-full" placeholder="e.g. hello-zama-stable" />
@@ -46,11 +49,8 @@
         <button @click="getAndDecrypt">4) Get & Decrypt Result</button>
         <p>🔒 cipher: <code>{{ resultCipher }}</code></p>
         <p>🟢 plain: <code>{{ resultPlain }}</code></p>
-      </div>
-	  
-	  <p v-if="errorMsg" style="color: red; margin-top: 8px">
-		❌ {{ errorMsg }}
-	  </p>
+      </div>	  
+
     </div>
   </div>
 </template>
