@@ -19,17 +19,15 @@ services:
       - key: CHAIN_ID
         value: "2201"
 
-  # ② Vite 前端（Static Site）
-  - type: static_site          # ← 這裡要叫 static_site
+  # ② Vite 前端（也當作 Web Service 跑 Docker）
+  - type: web
     name: cda-frontend
-    buildCommand: "cd frontend && npm ci && npm run build"
-    staticPublishPath: "frontend/dist"
+    env: docker
+    plan: free
+    autoDeploy: true
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
     envVars:
-      - key: NODE_VERSION
-        value: "20"
       - key: VITE_API_BASE
-        sync: false           # 等後端 Live 後再填入後端公開 URL
-    routes:
-      - type: rewrite
-        source: /.*
-        destination: /index.html
+        sync: false         # 後端 Live 後再填入公開 URL
+    healthCheckPath: /
