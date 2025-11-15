@@ -49,7 +49,7 @@ public class ContractService {
     }
 
     /**
-     * 共用：送出一個寫鏈上的合約 Function，回傳 txHash
+     * 共用：送出一個寫鏈上的合約 Function，回傳txHash
      */
     private String sendFunctionTx(Function fn) throws Exception {
         String data = FunctionEncoder.encode(fn);
