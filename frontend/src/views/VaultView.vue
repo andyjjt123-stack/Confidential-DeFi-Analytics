@@ -83,7 +83,7 @@ const resultCipher = ref("");
 const resultPlain = ref("");
 
 async function encryptPlain(){
-  const r = await axios.post('/fhe/encrypt', null, { params:{ plain: plain.value }});
+  const r = await api.post('/fhe/encrypt', null, { params:{ plain: plain.value }});
   cipherHexFromPlain.value = r.data.cipherHex || "";
 }
 
@@ -97,12 +97,12 @@ async function submitMetricFromPlain(){
 }
 
 async function evalAndPost(){
-  const r = await axios.post('/fhe/eval-and-post');
+  const r = await api.post('/fhe/eval-and-post');
   txEval.value = r.data.txHash || "";
 }
 
 async function getAndDecrypt(){
-  const r = await axios.get('/fhe/decrypt-result');
+  const r = await api.get('/fhe/decrypt-result');
   resultCipher.value = r.data.cipherHex || "0x";
   resultPlain.value  = r.data.plain || "";
 }
