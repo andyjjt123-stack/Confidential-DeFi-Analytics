@@ -47,6 +47,10 @@
         <p>🔒 cipher: <code>{{ resultCipher }}</code></p>
         <p>🟢 plain: <code>{{ resultPlain }}</code></p>
       </div>
+	  
+	  <p v-if="errorMsg" style="color: red; margin-top: 8px">
+		❌ {{ errorMsg }}
+	  </p>
     </div>
   </div>
 </template>
@@ -60,15 +64,29 @@ const cipherHex = ref("0x1234abcd");
 const txHash = ref("");
 const result = ref("");
 const loading = ref(false);
+const errorMsg = ref("");
 
-async function submitMetric(){
-  if(!cipherHex.value) return alert("Please input cipherHex");
+async function submitMetric() {
+  if (!cipherHex.value) return alert("Please input cipherHex");
   loading.value = true;
-  try{
-    const r = await api.post('/vault/submit', null, { params:{ cipherHex: cipherHex.value }});
+  errorMsg.value = "";
+  try {
+    const r = await api.post("/vault/submit", null, {
+      params: { cipherHex: cipherHex.value },
+    });
     txHash.value = r.data.txHash || "";
-  } finally { loading.value = false; }
+  } catch (e) {
+    console.error(e);
+    errorMsg.value =
+      e.response?.data?.message ||
+      e.response?.data ||
+      e.message ||
+      "Submit metric failed";
+  } finally {
+    loading.value = false;
+  }
 }
+
 async function getResult(){
   const r2 = await api.get('/vault/result');
   result.value = r2.data.encryptedResult || "";
@@ -87,13 +105,25 @@ async function encryptPlain(){
   cipherHexFromPlain.value = r.data.cipherHex || "";
 }
 
-async function submitMetricFromPlain(){
-  if(!cipherHexFromPlain.value) return alert("請先 Encrypt");
+async function submitMetricFromPlain() {
+  if (!cipherHexFromPlain.value) return alert("請先 Encrypt");
   loading.value = true;
-  try{
-    const r = await api.post('/vault/submit', null, { params:{ cipherHex: cipherHexFromPlain.value }});
+  errorMsg.value = "";
+  try {
+    const r = await api.post("/vault/submit", null, {
+      params: { cipherHex: cipherHexFromPlain.value },
+    });
     txSubmitFromPlain.value = r.data.txHash || "";
-  } finally { loading.value = false; }
+  } catch (e) {
+    console.error(e);
+    errorMsg.value =
+      e.response?.data?.message ||
+      e.response?.data ||
+      e.message ||
+      "Submit metric failed";
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function evalAndPost(){
