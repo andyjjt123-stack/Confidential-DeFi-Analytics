@@ -1,0 +1,44 @@
+services:
+  # ① Spring Boot 後端（Web Service）
+  - type: web
+    name: cda-backend
+    env: docker
+    plan: free
+    autoDeploy: true
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75.0"
+      - key: STABLE_RPC_URL
+        sync: false  # 部署前在 Render 介面輸入
+      - key: PRIVATE_KEY
+        sync: false
+      - key: CONTRACT_ADDRESS
+        sync: false
+      - key: CHAIN_ID
+        value: "2201"
+
+  # ② Vite 前端（Static Site）
+  - type: static
+    name: cda-frontend
+    buildCommand: "npm ci && npm run build"
+    staticPublishPath: "dist"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_BASE
+        sync: false  # 之後填入後端公開 URL
+    buildFilter:
+      paths:
+        - frontend/**
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: max-age=600
+    routes:
+      - type: rewrite
+        source: /.*
+        destination: /index.html
+    build:
+      command: "cd frontend && npm ci && npm run build"
+      publishPath: "frontend/dist"
